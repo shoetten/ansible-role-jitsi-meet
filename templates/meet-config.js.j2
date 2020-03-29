@@ -197,7 +197,7 @@ var config = {
     // Misc
 
     // Default value for the channel "last N" attribute. -1 for unlimited.
-    channelLastN: -1,
+    channelLastN: {{ jitsi_meet_config_last_n }},
 
     // Disables or enables RTX (RFC 4588) (defaults to false).
     // disableRtx: false,
@@ -253,7 +253,7 @@ var config = {
     // disable1On1Mode: false,
 
     // Default language for the user interface.
-    // defaultLanguage: 'en',
+    defaultLanguage: '{{ jitsi_meet_config_default_language }}',
 
     // If true all users without a token will be considered guests and all users
     // with token will be considered non-guests. Only guests will be allowed to
