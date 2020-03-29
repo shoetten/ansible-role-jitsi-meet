@@ -72,7 +72,7 @@
 
 - name: Enable jitsi-videobridge
   service:
-    name: {{ jitsi_videobridge_service }}
+    name: "{{ jitsi_videobridge_service }}"
     enabled: yes
 
 - name: Enable jicofo
