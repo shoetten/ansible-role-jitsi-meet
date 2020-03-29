@@ -21,8 +21,10 @@
 
 - name: Install jitsi-meet
   apt:
-    pkg: jitsi-meet
+    name: jitsi-meet
     state: present
+    update_cache: yes
+    install_recommends: no
 
 - name: Copy sip-communicator.properties
   template:
