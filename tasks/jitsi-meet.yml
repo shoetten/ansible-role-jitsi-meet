@@ -21,10 +21,10 @@
 
 - name: Install jitsi-meet
   apt:
-    name: jitsi-meet
+    pkg: jitsi-meet
+    install_recommends: no
     state: present
     update_cache: yes
-    install_recommends: no
 
 - name: Copy sip-communicator.properties
   template:
@@ -32,6 +32,7 @@
     dest: /etc/jitsi/videobridge/sip-communicator.properties
     owner: jvb
     group: jitsi
+  notify: restart jitsi-videobridge2
 
 - name: Copy jicofo config
   template:
@@ -49,30 +50,54 @@
     group: jitsi
   notify: restart jicofo
 
-- name: Copy jitsi-videobridge config
+- name: Copy jitsi-videobridge2 config
   template:
     src: jvb.j2
     dest: /etc/jitsi/videobridge/config
     owner: jvb
     group: jitsi
-  notify: restart jitsi-videobridge
+  notify: restart jitsi-videobridge2
 
-- name: Copy jitsi-videobridge log.properties
+- name: Copy jitsi-videobridge2 log.properties
   template:
     src: jvb_logging.properties.j2
     dest: /etc/jitsi/videobridge/logging.properties
     owner: jvb
     group: jitsi
-  notify: restart jitsi-videobridge
+  notify: restart jitsi-videobridge2
 
 - name: Copy jitsi meet config
   template:
     src: meet-config.js.j2
     dest: "/etc/jitsi/meet/{{ jitsi_meet_server_name }}-config.js"
 
-- name: Enable jitsi-videobridge
+- name: Check if jitsi meet override CSS file exists
+  stat:
+    path: "{{ item }}"
+  delegate_to: 127.0.0.1
+  loop: "{{ q('first_found', { 'files': 'jitsi-meet-override.css', 'paths': [playbook_dir + '/files/'], 'skip': 'yes' }) }}"
+  register: jitsi_meet_override_css_file
+
+- name: Inject jitsi meet override CSS
+  when:
+    - jitsi_meet_override_css_file.results|length > 0
+    - jitsi_meet_override_css_file.results[0].stat.exists
+  block:
+    - name: Copy jitsi meet override CSS file
+      copy:
+        src: "{{ jitsi_meet_override_css_file.results[0].item }}"
+        dest: "/usr/share/jitsi-meet/css/override.css"
+        mode: "0644"
+    - name: Inject jitsi meet override CSS import statement into HTML file
+      lineinfile:
+        path: /usr/share/jitsi-meet/index.html
+        regexp: 'override.css'
+        line: '    <link rel="stylesheet" href="css/override.css">'
+        insertbefore: '</head>'
+
+- name: Enable jitsi-videobridge2
   service:
-    name: "{{ jitsi_meet_videobridge_service }}"
+    name: jitsi-videobridge2
     enabled: yes
 
 - name: Enable jicofo
@@ -80,5 +105,4 @@
     name: jicofo
     enabled: yes
 
-- name: Force all notified handlers
-  meta: flush_handlers
+- meta: flush_handlers
