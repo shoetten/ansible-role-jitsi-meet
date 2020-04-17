@@ -1,7 +1,8 @@
 server_names_hash_bucket_size 64;
 
 server {
-    listen 80;
+    listen 0.0.0.0:80;
+    listen [::]:80;
     server_name {{ jitsi_meet_server_name }} {{ jitsi_meet_server_name_aliases | join(' ')}};
     return 301 https://$host$request_uri;
 }
